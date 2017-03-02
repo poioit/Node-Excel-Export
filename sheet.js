@@ -1,6 +1,7 @@
 var sheetFront = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><x:worksheet xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' 
 		+ ' <x:sheetPr/><x:sheetViews><x:sheetView tabSelected="1" workbookViewId="0" /></x:sheetViews>' 
 		+ ' <x:sheetFormatPr defaultRowHeight="15" />';
+var sheetFrontAppend = "";
 var sheetBack =' <x:pageMargins left="0.75" right="0.75" top="0.75" bottom="0.5" header="0.5" footer="0.75" />'
 		+ ' <x:headerFooter /></x:worksheet>';
     
@@ -41,7 +42,7 @@ Sheet.prototype.generate = function(){
 		colStyleIndex = cols[k].captionStyleIndex || 0;
 		row += addStringCell(self, getColumnLetter(k + 1) + 1, cols[k].caption, colStyleIndex);
 		if (cols[k].width) {
-			colsWidth += '<col customWidth = "1" width="' + cols[k].width + '" max = "' + (k + 1) + '" min="' + (k + 1) + '"/>';
+			colsWidth += '<x:col customWidth = "1" width="' + cols[k].width + '" bestFit="1" max = "' + (k + 1) + '" min="' + (k + 1) + '"/>';
 		}
 	}
 	row += '</x:row>';
@@ -87,9 +88,10 @@ Sheet.prototype.generate = function(){
 		rows += row;
 	}
 	if (colsWidth !== "") {
-		sheetFront += '<cols>' + colsWidth + '</cols>';
+		sheetFrontAppend += '<x:cols>' + colsWidth + '</x:cols>';
 	}
 	xlsx.file(config.fileName, sheetFront + '<x:sheetData>' + rows + '</x:sheetData>' + sheetBack);
+  	sheetFrontAppend = "";
 }
 
 module.exports = Sheet;
