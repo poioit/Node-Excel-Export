@@ -4,6 +4,15 @@ var sheetFront = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><x:work
 var sheetFrontAppend = "";
 var sheetBack =' <x:pageMargins left="0.75" right="0.75" top="0.75" bottom="0.5" header="0.5" footer="0.75" />'
 		+ ' <x:headerFooter /></x:worksheet>';
+
+//hyperlink
+var sheetHyperlinksFront = '<x:hyperlinks>';
+var sheetHyperlinksBack = '</x:hyperlinks>';
+var hyperlinksCount = 0;
+var sheetRelationshipsFront = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+    //'<Relationship TargetMode="External" Target="http://urbanapplication.org/DownloadAll/5233fb8094bfd08f35000018" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Id="rId1"/>' +
+var sheetRelationshipsBack = '</Relationships>';
     
 var fs = require('fs');
 
@@ -25,6 +34,8 @@ Sheet.prototype.generate = function(){
 	styleIndex,
   self = this,
 	k;
+	hyperlinksCount = 0;
+	sheetRelationshipsBack = '</Relationships>';
 	config.fileName = 'xl/worksheets/' + (config.name || "sheet").replace(/[*?\]\[\/\/]/g, '') + '.xml';
 	if (config.stylesXmlFile) {
 		var path = config.stylesXmlFile;
@@ -80,6 +91,9 @@ Sheet.prototype.generate = function(){
 			case 'bool':
 				row += addBoolCell(getColumnLetter(j + 1) + currRow, cellData, styleIndex);
 				break;
+			case 'hyperlink':
+				row += addHyperlinkCol(self, getColumnLetter(j + 1) + currRow, cellData, styleIndex);
+				break;
 			default:
 				row += addStringCell(self, getColumnLetter(j + 1) + currRow, cellData, styleIndex);
 			}
@@ -90,9 +104,15 @@ Sheet.prototype.generate = function(){
 	if (colsWidth !== "") {
 		sheetFrontAppend += '<x:cols>' + colsWidth + '</x:cols>';
 	}
-	xlsx.file(config.fileName, sheetFront + '<x:sheetData>' + rows + '</x:sheetData>' + sheetBack);
-  	sheetFrontAppend = "";
-}
+	if (hyperlinksCount > 0) {
+		xlsx.file("xl/worksheets/_rels/" + config.name + ".xml.rels", sheetRelationshipsFront + sheetRelationshipsBack);
+		xlsx.file(config.fileName, sheetFront + sheetFrontAppend + '<x:sheetData>' + rows +'</x:sheetData>' + mergecelsString + sheetHyperlinksFront + sheetHyperlinksBack + sheetBack);
+		sheetHyperlinksBack = '</x:hyperlinks>';
+	} else {
+		xlsx.file(config.fileName, sheetFront + sheetFrontAppend + '<x:sheetData>' + rows +'</x:sheetData>' + mergecelsString + sheetBack);
+	}
+	sheetFrontAppend = "";
+};
 
 module.exports = Sheet;
 
@@ -156,6 +176,27 @@ var addStringCell = function(sheet, cellRef, value, styleIndex){
 	return '<x:c r="'+cellRef+'" s="'+ styleIndex + '" t="s"><x:v>'+i+'</x:v></x:c>';
 };
 
+var addHyperlinkCol = function(sheet, cellRef, value, styleIndex){
+    if (!value)
+        return "";
+    if (typeof value ==='object'){
+        var href = value.href;
+        value.text = value.text.replace(/&/g, "&amp;").replace(/'/g, "&apos;").replace(/>/g, "&gt;").replace(/</g, "&lt;");
+				href = href.replace(/&/g, "&amp;").replace(/'/g, "&apos;").replace(/>/g, "&gt;").replace(/</g, "&lt;");
+        
+        hyperlinksCount++;
+        sheetRelationshipsBack = '<Relationship TargetMode="External" Target="'+href+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Id="rId'+hyperlinksCount+'"/>' + sheetRelationshipsBack;
+        sheetHyperlinksBack = '<x:hyperlink ref="'+cellRef+'" r:id="rId'+hyperlinksCount+'"/>' + sheetHyperlinksBack;
+    }
+
+    var i = sheet.shareStrings.get(value.text, -1);
+	if ( i< 0){
+    i = sheet.shareStrings.length;
+  	sheet.shareStrings.add(value.text, i);
+    sheet.convertedShareStrings += "<x:si><x:t>"+value.text+"</x:t></x:si>";
+	}
+    return '<x:c r="' + cellRef+'" s="'+ styleIndex + '" t="s"><x:v>'+i+'</x:v></x:c>';
+};
 
 var getColumnLetter = function(col){
   if (col <= 0)

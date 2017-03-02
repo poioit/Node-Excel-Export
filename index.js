@@ -19,7 +19,7 @@ var sheetsBack = '</sheets><calcPr calcId="144525"/></workbook>';
 
 var relFront = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
 
-var relBack = '<Relationship Id="rId101" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/><Relationship Id="rId100" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId102" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme.xml"/></Relationships>';
+var relBack = '<Relationship Id="rId201" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/><Relationship Id="rId200" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId202" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme.xml"/></Relationships>';
 var contentTypeFront = '<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />'
 		+ '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />'
 		+ '<Default Extension="psmdcp" ContentType="application/vnd.openxmlformats-package.core-properties+xml" />'
@@ -99,6 +99,8 @@ exports.execute = function(config) {
 		checkCRC32: false
 	});
 	shareStrings = new SortedMap();
+	sheetHyperlinksBack = '</x:hyperlinks>';
+    sheetRelationshipsBack = '</Relationships>';
 	convertedShareStrings = "";  
   
 	var configs = [];
